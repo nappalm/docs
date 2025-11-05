@@ -1,0 +1,86 @@
+# File Structure
+
+## Overview
+BuildFast follows a feature-first ("Screaming Architecture") layout. Features are vertical slices with their own components, pages, hooks, services, utils, and router. Global configuration and shared building blocks live outside features.
+
+## Key Concepts
+- **Feature modules:** Self-contained domains in `src/features/*` with a minimal public API.
+- **App shell:** Global providers and the root router in `src/app`.
+- **Shared layer:** Cross-cutting UI and utilities in `src/shared`.
+- **Lib configs:** Centralized third‑party setup in `src/lib` (axios, chakra, react-query, stripe, supabase).
+- **Path aliases:** Import with `@/*` pointing to `./src/*`.
+
+## Structure
+```txt
+src/
+  app/
+    main.tsx              # entry point
+    providers.tsx         # Chakra -> React Query -> Auth -> Router
+    router.tsx            # compose routes from features
+  features/
+    auth/
+      components/
+      hooks/
+      pages/
+      router/
+        paths.ts
+        router.tsx
+      services/
+      utils/
+      index.ts            # public API
+    home/
+    settings/
+    ...
+  lib/
+    axios/
+    chakra-ui/
+    react-query/
+    stripe/
+    supabase/
+  shared/
+    components/           # BaseLayout, SettingsLayout, etc.
+    hooks/
+    services/
+    utils/
+```
+
+## Code Examples
+
+- **Feature public API**
+```ts
+// src/features/example/index.ts
+export { exampleRoutes } from "./router/router";
+export { EXAMPLE_PATHS } from "./router/paths";
+export { useExample } from "./hooks/useExample";
+```
+
+- **App router composition**
+```tsx
+// src/app/router.tsx
+import { createBrowserRouter } from "react-router-dom";
+import { authRoutes } from "@/features/auth";
+import { homeRoutes } from "@/features/home";
+import { settingsRoutes } from "@/features/settings";
+
+export const router = createBrowserRouter([
+  ...authRoutes,
+  ...homeRoutes,
+  ...settingsRoutes,
+]);
+```
+
+- **Path alias usage**
+```ts
+// tsconfig/vite configured with @/*
+import { supabaseClient } from "@/lib/supabase";
+import { BaseLayout } from "@/shared/components/BaseLayout";
+```
+
+## Best Practices
+- **Keep internals private:** Only export stable APIs from each feature’s `index.ts`.
+- **Thin router files:** Keep data logic in hooks/services, not in route objects.
+- **Shared is generic:** Place only reusable, feature-agnostic code in `src/shared`.
+- **Centralize configs:** HTTP, theming, query client, and SDK clients live in `src/lib`.
+
+## Next Steps
+- Continue to API Communication to see Axios and React Query patterns and error handling.

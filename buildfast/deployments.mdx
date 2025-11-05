@@ -1,0 +1,75 @@
+# Deployments
+
+## Overview
+Build and deploy your BuildFast app to production. This guide covers environment variables (full list, no filtering), building with Vite, static hosting previews, and common CI tips.
+
+## Key Concepts
+- **Vite build:** Produces an optimized static bundle ready for CDNs.
+- **Env management:** Use `.env.production` or CI secrets for runtime config.
+- **Previews:** Use `npm run preview` to simulate production locally.
+- **CI basics:** Cache deps, run lint/tests, build, and upload artifacts.
+
+## Steps
+
+- **1) Set production environment variables**
+Define secrets in your hosting provider or a `.env.production` file.
+```env
+# Backend base URL (optional)
+VITE_APP_API_BASE_URL=https://api.example.com
+
+# Supabase
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+
+# Stripe
+VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+# Locale (optional)
+VITE_APP_LOCALE_CURRENCY=USD
+VITE_APP_LOCALE_DATETIME=en-US
+```
+
+- **2) Build**
+```bash
+npm run build
+```
+This generates an optimized bundle and a sitemap.
+
+- **3) Preview locally**
+```bash
+npm run preview
+# Serves the production build locally
+```
+
+- **4) Deploy to static hosting**
+Upload the `dist/` folder to your hosting (e.g., Netlify, Vercel static, S3 + CloudFront). Ensure SPA fallback to `index.html` is enabled for React Router.
+
+## Code Examples
+
+- **Vite config SPA fallback**
+```ts
+// vite.config.ts (excerpt)
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  server: { port: 5173 },
+});
+```
+
+- **Netlify SPA redirect**
+```txt
+# public/_redirects
+/*    /index.html   200
+```
+
+## Best Practices
+- **Keep keys safe:** Only publishable keys on client. Server secrets stay server-side.
+- **Cache wisely in CI:** Cache node_modules or PNPM store for faster builds.
+- **Sourcemaps:** Enable only where needed; avoid exposing sensitive code in public maps.
+- **Monitor:** Add basic logging/analytics and error reporting in production.
+
+## Next Steps
+- You’re done! Revisit earlier sections as needed or extend with new features and integrations.

@@ -1,0 +1,99 @@
+# Testing & QA
+
+## Overview
+Test your features with fast unit tests (Vitest), component tests, and integration patterns. This page outlines how to test hooks, services, and routed pages using providers. Env variables are listed in full for reproducible test setups.
+
+## Key Concepts
+- **Vitest first:** Co-locate tests near code for fast feedback.
+- **Providers in tests:** Wrap components with Chakra, React Query, and Auth providers.
+- **Mock HTTP:** Stub Axios requests and Supabase/Stripe SDK calls.
+- **Deterministic queries:** Control React Query cache per test.
+
+## Code Examples
+
+- **Vitest setup snippet**
+```ts
+// src/test/test-utils.tsx
+import { ReactNode } from "react";
+import { ChakraProvider } from "@chakra-ui/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+export function Providers({ children }: { children: ReactNode }) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return (
+    <ChakraProvider>
+      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+    </ChakraProvider>
+  );
+}
+```
+
+- **Test a React Query hook**
+```ts
+// src/features/example/hooks/useItems.test.ts
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { Providers } from "@/test/test-utils";
+import * as svc from "../services/example.service";
+
+describe("useItems", () => {
+  it("returns data", async () => {
+    vi.spyOn(svc, "listItems").mockResolvedValue([{ id: "1", name: "A" }]);
+    const { result } = renderHook(() => svc.listItems(), { wrapper: Providers });
+    await waitFor(() => expect(result.current.data).toBeDefined());
+  });
+});
+```
+
+- **Mock Axios**
+```ts
+// tests/mocks/axios.ts
+import { vi } from "vitest";
+export const axiosMock = {
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+};
+vi.mock("@/lib/axios", () => ({ axiosClient: axiosMock }));
+```
+
+- **Component test with routing**
+```tsx
+// src/features/example/pages/ExamplePage.test.tsx
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { Providers } from "@/test/test-utils";
+import ExamplePage from "./ExamplePage";
+
+test("renders heading", () => {
+  render(
+    <Providers>
+      <MemoryRouter>
+        <ExamplePage />
+      </MemoryRouter>
+    </Providers>
+  );
+  expect(screen.getByRole("heading", { name: /example/i })).toBeInTheDocument();
+});
+```
+
+## Environment Variables (no filtering)
+```env
+VITE_APP_API_BASE_URL=https://api.example.com
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+VITE_APP_LOCALE_CURRENCY=USD
+VITE_APP_LOCALE_DATETIME=en-US
+```
+
+## Best Practices
+- **One concern per test:** Keep tests focused and readable.
+- **No network:** Mock HTTP/SDKs; tests should be offline.
+- **Reset state:** Clear mocks and React Query caches between tests.
+- **Accessibility checks:** Prefer role-based queries from Testing Library.
+
+## Next Steps
+- Continue to Deployments to build and ship your app.

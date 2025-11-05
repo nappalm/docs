@@ -1,0 +1,82 @@
+# QuickStart
+
+## Overview
+Get BuildFast running locally in minutes. You’ll install dependencies, set environment variables, start the dev server, and explore the default feature modules. No filtering of env values — all variables are listed explicitly here.
+
+## Key Concepts
+- **Single command dev:** Vite-powered dev server with hot reload.
+- **Typed integrations:** Supabase and Stripe configured via env vars.
+- **Feature-first routing:** Routes composed from each feature’s public API.
+- **Path aliases:** Import via `@/*` for clean module paths.
+
+## Steps
+
+- **1) Install dependencies**
+```bash
+npm install
+```
+
+- **2) Configure environment variables**
+Create a `.env` at the project root. These are required for auth, data, and payments.
+```env
+# Supabase
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+
+# Stripe
+VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+# Optional locale settings
+VITE_APP_LOCALE_CURRENCY=USD
+VITE_APP_LOCALE_DATETIME=en-US
+```
+
+- **3) Start the dev server**
+```bash
+npm run dev
+# App runs at http://localhost:5173
+```
+
+- **4) Verify providers and routes**
+```tsx
+// src/app/providers.tsx
+// ChakraProvider -> React Query -> AuthProvider -> RouterProvider
+```
+```tsx
+// src/app/router.tsx
+// Compose routes from feature public APIs
+authRoutes; homeRoutes; settingsRoutes;
+```
+
+- **5) Generate your first feature (optional)**
+```bash
+npm run plop
+# Creates: src/features/<your-feature>/{components,hooks,pages,router,services,utils,index.ts}
+```
+
+## Code Examples
+
+- **Path aliases**
+```ts
+// tsconfig.json / vite.config.ts configured for @/* alias
+import { supabaseClient } from "@/lib/supabase";
+```
+
+- **React Query config (focus refetch disabled)**
+```tsx
+// src/lib/react-query/query-client.tsx
+export const queryClient = new QueryClient({
+  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+});
+```
+
+## Best Practices
+- **Keep secrets safe:** Use `.env` and never commit it.
+- **Public API only:** Export stable hooks/components/paths from each feature’s `index.ts`.
+- **Shared imports:** Only import from `@/shared` in features; don’t import feature internals into shared.
+- **Type everything:** Keep Supabase types and API responses strictly typed.
+
+## Next Steps
+- Build “Your first feature” to add a new route, a page, and a data hook.
+- Review File Structure to understand the Screaming Architecture layout.

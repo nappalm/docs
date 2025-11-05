@@ -1,0 +1,117 @@
+# Introduction
+
+## Overview
+BuildFast is an AI-driven React boilerplate designed to ship production-ready SPAs fast. It combines React, Vite, React Router, Chakra UI, React Query, Axios, Supabase, and Stripe—organized with a “Screaming Architecture” so features (not files) are the first thing you see. You get opinionated structure, clear feature boundaries, and batteries-included DX.
+
+## Key Concepts
+- **Feature-first architecture**
+Organize by domain features, each as a vertical slice with components, pages, hooks, services, utils, and router.
+
+- **Public API per feature**
+Only expose what other features should consume via `index.ts`.
+
+- **Shared vs feature code**
+Reusable UI and utilities live in `src/shared`, feature internals stay private.
+
+- **Typed, robust integrations**
+Supabase for auth and data, Stripe for payments, React Query for server state.
+
+- **CLI scaffolding**
+Generate new features consistently with `npm run plop`.
+
+## Code Examples
+
+- **Install and run**
+```bash
+npm install
+npm run dev     # http://localhost:5173
+npm run build
+npm run preview
+```
+
+- **Provider composition**
+```tsx
+// src/app/providers.tsx
+import { ChakraProvider } from "@chakra-ui/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider } from "react-router-dom";
+import { queryClient } from "@/lib/react-query/query-client";
+import { router } from "@/app/router";
+import { AuthProvider } from "@/features/auth";
+
+export function AppProviders() {
+  return (
+    <ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ChakraProvider>
+  );
+}
+```
+
+- **Feature public API**
+```ts
+// src/features/auth/index.ts
+export { useAuthSession, useProfile } from "./hooks";
+export { AUTH_PATHS } from "./router/paths";
+export { authRoutes } from "./router/router";
+```
+
+- **Compose routes**
+```tsx
+// src/app/router.tsx
+import { createBrowserRouter } from "react-router-dom";
+import { authRoutes } from "@/features/auth";
+import { homeRoutes } from "@/features/home";
+import { settingsRoutes } from "@/features/settings";
+
+export const router = createBrowserRouter([
+  ...authRoutes,
+  ...homeRoutes,
+  ...settingsRoutes,
+]);
+```
+
+- **Environment variables**
+```env
+# .env
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+# Optional locale settings
+VITE_APP_LOCALE_CURRENCY=USD
+VITE_APP_LOCALE_DATETIME=en-US
+```
+
+- **Generate a new feature**
+```bash
+npm run plop
+# Creates: src/features/<your-feature>/{components,hooks,pages,router,services,utils,index.ts}
+```
+
+## Best Practices
+- **Expose less**
+Only export stable, necessary APIs from each feature’s `index.ts`.
+
+- **Keep internals private**
+Components/services/hooks that shouldn’t leak stay unexported.
+
+- **Use shared wisely**
+Pull from `@/shared` for cross-cutting UI/utilities; never import feature internals into shared.
+
+- **Type your edges**
+Keep Supabase schemas and API responses typed; centralize Axios and React Query config in `src/lib`.
+
+- **Consistent routing**
+Define `paths.ts`, export `router.tsx`, and compose in the app router.
+
+- **Production habits**
+Use ESLint/Prettier/Commitlint, and disable React Query refetch on focus only if intentional.
+
+## Next Steps
+- Read the QuickStart to run BuildFast locally, configure env vars, and explore the default features.
+- Use the generator to scaffold your first feature and wire its routes.

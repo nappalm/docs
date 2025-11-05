@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Mint Starter Kit",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#2563EB",
+    "light": "#3B82F6",
+    "dark": "#1E40AF"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -13,6 +13,19 @@
       {
         "tab": "Guides",
         "groups": [
+          {
+            "group": "BuildFast",
+            "pages": [
+              "buildfast/introduction",
+              "buildfast/quickstart",
+              "buildfast/your-first-feature",
+              "buildfast/file-structure",
+              "buildfast/api-communication",
+              "buildfast/integrations",
+              "buildfast/testing-and-qa",
+              "buildfast/deployments"
+            ]
+          },
           {
             "group": "Getting started",
             "pages": [

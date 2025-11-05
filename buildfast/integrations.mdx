@@ -1,0 +1,133 @@
+# Integrations
+
+## Overview
+BuildFast ships with first-class integrations for Supabase (auth + database) and Stripe (payments). This page covers setup, environment variables (listed in full), and minimal code examples to get you productive quickly.
+
+## Key Concepts
+- **Supabase Auth:** Session management via an `AuthProvider`, protected routes, and typed DB access.
+- **Stripe Payments:** Client-only setup using publishable key and `@stripe/react-stripe-js` for UI components.
+- **Centralized config:** SDK clients live in `src/lib/supabase` and `src/lib/stripe`.
+- **Feature usage:** Features import only from the public APIs they need.
+
+## Supabase
+
+- **Client setup**
+```ts
+// src/lib/supabase/supabase-client.ts
+import { createClient } from "@supabase/supabase-js";
+
+export const supabaseClient = createClient(
+  import.meta.env.VITE_APP_SUPABASE_URL!,
+  import.meta.env.VITE_APP_SUPABASE_ANON_KEY!
+);
+```
+
+- **Auth provider**
+```tsx
+// src/features/auth/AuthProvider.tsx
+import { createContext, useEffect, useState } from "react";
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export const AuthContext = createContext<{ session: any | null }>({ session: null });
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<any | null>(null);
+
+  useEffect(() => {
+    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, s) => setSession(s));
+    supabaseClient.auth.getSession().then(({ data }) => setSession(data.session));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  return <AuthContext.Provider value={{ session }}>{children}</AuthContext.Provider>;
+}
+```
+
+- **Protected route**
+```tsx
+// src/shared/components/ProtectedRoute.tsx
+import { useContext } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { AuthContext } from "@/features/auth/AuthProvider";
+
+export function ProtectedRoute() {
+  const { session } = useContext(AuthContext);
+  return session ? <Outlet /> : <Navigate to="/auth/login" replace />;
+}
+```
+
+## Stripe
+
+- **Client setup**
+```ts
+// src/lib/stripe/index.ts
+import { loadStripe } from "@stripe/stripe-js";
+export const stripePromise = loadStripe(import.meta.env.VITE_APP_STRIPE_PUBLISHABLE_KEY!);
+```
+
+- **Provider and Elements**
+```tsx
+// src/features/payments/StripeProviders.tsx
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "@/lib/stripe";
+
+export function StripeProviders({ children }: { children: React.ReactNode }) {
+  return <Elements stripe={stripePromise}>{children}</Elements>;
+}
+```
+
+- **Minimal checkout form**
+```tsx
+// src/features/payments/components/CheckoutForm.tsx
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { useState } from "react";
+
+export function CheckoutForm() {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setLoading(true);
+    // This would call your backend to create a PaymentIntent, then confirm it here.
+    // const { clientSecret } = await fetch("/create-intent").then(r => r.json());
+    // await stripe.confirmCardPayment(clientSecret, { payment_method: { card: elements.getElement(CardElement)! } });
+    setLoading(false);
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <CardElement />
+      <button type="submit" disabled={!stripe || loading}>
+        {loading ? "Processing..." : "Pay"}
+      </button>
+    </form>
+  );
+}
+```
+
+## Environment Variables (no filtering)
+```env
+# Supabase
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+
+# Stripe
+VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+# Optional locale
+VITE_APP_LOCALE_CURRENCY=USD
+VITE_APP_LOCALE_DATETIME=en-US
+```
+
+## Best Practices
+- **Provider order:** Compose providers in `src/app/providers.tsx` (Chakra → React Query → Auth → Router).
+- **Keep secrets server-side:** Use only publishable keys on the client; move secret ops to your backend.
+- **Typed DB:** Generate and import Supabase types (e.g., `database.types.ts`) to keep queries safe.
+- **Error surfaces:** Normalize errors from SDKs into a shared shape before showing UI messages.
+
+## Next Steps
+- Continue to Testing & QA to validate hooks, services, and routing.
