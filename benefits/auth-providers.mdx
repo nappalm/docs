@@ -1,0 +1,134 @@
+---
+title: "Auth Providers"
+description: "Proveedores de autenticación preconfigurados para flujos de autenticación seguros, rápidos y compatibles"
+---
+
+## Overview
+
+BuildFast viene con proveedores de autenticación preconfigurados (Google, GitHub, etc.) para flujos de autenticación seguros, rápidos y compatibles. La integración con Supabase Auth te permite habilitar múltiples proveedores OAuth sin configuración adicional compleja.
+
+## Proveedores Disponibles
+
+BuildFast soporta los siguientes proveedores de autenticación a través de Supabase:
+
+- **Google** - Autenticación con cuentas de Google
+
+## Configuración
+
+### Variables de Entorno
+
+Configura las credenciales de Supabase en tu archivo `.env`:
+
+```env
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+```
+
+### Habilitar Proveedores en Supabase
+
+1. Ve al dashboard de Supabase
+2. Navega a **Authentication** > **Providers**
+3. Habilita los proveedores que necesites (Google, GitHub, etc.)
+4. Configura las credenciales OAuth de cada proveedor
+
+## Implementación
+
+### Auth Provider
+
+BuildFast incluye un `AuthProvider` que gestiona el estado de autenticación:
+
+```tsx
+// src/features/auth/AuthProvider.tsx
+import { createContext, useEffect, useState } from "react";
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export const AuthContext = createContext<{ session: any | null }>({ session: null });
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<any | null>(null);
+
+  useEffect(() => {
+    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, s) => setSession(s));
+    supabaseClient.auth.getSession().then(({ data }) => setSession(data.session));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  return <AuthContext.Provider value={{ session }}>{children}</AuthContext.Provider>;
+}
+```
+
+### Login con Proveedor OAuth
+
+Ejemplo de cómo implementar login con Google o GitHub:
+
+```tsx
+// src/features/auth/components/OAuthButton.tsx
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+import { Button } from "@chakra-ui/react";
+
+export function OAuthButton({ provider }: { provider: "google" | "github" }) {
+  const handleLogin = async () => {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    
+    if (error) {
+      console.error("Error:", error.message);
+    }
+  };
+
+  return (
+    <Button onClick={handleLogin}>
+      Continuar con {provider === "google" ? "Google" : "GitHub"}
+    </Button>
+  );
+}
+```
+
+### Rutas Protegidas
+
+BuildFast incluye componentes para proteger rutas que requieren autenticación:
+
+```tsx
+// src/shared/components/ProtectedRoute.tsx
+import { useContext } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { AuthContext } from "@/features/auth/AuthProvider";
+
+export function ProtectedRoute() {
+  const { session } = useContext(AuthContext);
+  
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <Outlet />;
+}
+```
+
+## Ventajas
+
+- **Seguridad:** Autenticación gestionada por Supabase con estándares de seguridad OAuth 2.0
+- **Rapidez:** Configuración mínima, solo necesitas habilitar proveedores en el dashboard
+- **Compliance:** Cumple con estándares de seguridad y privacidad (GDPR, SOC 2)
+- **Múltiples opciones:** Soporta los proveedores más populares del mercado
+- **Experiencia de usuario:** Flujos de autenticación fluidos y familiares para los usuarios
+
+## Mejores Prácticas
+
+- **Habilita solo los proveedores que necesites** para mantener la seguridad
+- **Configura correctamente las URLs de callback** en el dashboard de Supabase
+- **Usa rutas protegidas** para contenido que requiere autenticación
+- **Maneja errores de autenticación** de forma amigable para el usuario
+- **Implementa logout** limpiando la sesión correctamente
+
+## Next Steps
+
+- Lee [Integrations](/buildfast/integrations) para más detalles sobre la configuración de Supabase
+- Revisa [QuickStart](/buildfast/quickstart) para comenzar con BuildFast
+- Explora otros [Benefits](/benefits/overview) que BuildFast ofrece
+

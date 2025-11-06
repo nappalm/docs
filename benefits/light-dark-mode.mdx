@@ -1,0 +1,169 @@
+---
+title: "Light & Dark Mode"
+description: "Built-in light and dark modes ensure a great user experience out of the box, with easy customization to match your brand"
+---
+
+## Overview
+
+BuildFast comes with built-in light and dark modes, ensuring a great user experience right out of the box. These modes are seamlessly integrated through Chakra UI's theming system, allowing users to switch between them effortlessly while providing easy customization to match your brand's aesthetic.
+
+## Key Features
+
+### Out-of-the-Box Support
+
+Light and dark modes are configured and ready to use immediately after setting up BuildFast. No additional configuration is required to enable basic theme switching functionality.
+
+### Seamless Integration
+
+The color mode system is deeply integrated with Chakra UI, ensuring that all components automatically adapt to the selected theme. This means every button, card, input, and other UI elements will respect the user's theme preference.
+
+### User Preference Persistence
+
+The selected color mode is automatically saved to localStorage, ensuring users' preferences persist across sessions. Users can also rely on system preferences, with the theme automatically matching their OS settings.
+
+### Easy Customization
+
+Customize colors, fonts, and other UI elements to perfectly align with your brand identity. The theming system is designed for flexibility and ease of use, allowing you to create a cohesive visual experience across both light and dark modes.
+
+## Implementation
+
+### Chakra UI Provider Setup
+
+BuildFast configures Chakra UI with color mode support in the app providers:
+
+```tsx
+// src/app/providers.tsx
+import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
+import { theme } from "@/lib/chakra-ui/theme";
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <ChakraProvider theme={theme}>
+        {children}
+      </ChakraProvider>
+    </>
+  );
+}
+```
+
+### Using Color Mode in Components
+
+Access and toggle color mode using Chakra UI's hooks:
+
+```tsx
+// src/shared/components/ColorModeToggle.tsx
+import { IconButton, useColorMode, useColorModeValue } from "@chakra-ui/react";
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+
+export function ColorModeToggle() {
+  const { colorMode, toggleColorMode } = useColorMode();
+  const bg = useColorModeValue("gray.100", "gray.800");
+  const color = useColorModeValue("gray.800", "gray.100");
+
+  return (
+    <IconButton
+      aria-label="Toggle color mode"
+      icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+      onClick={toggleColorMode}
+      bg={bg}
+      color={color}
+    />
+  );
+}
+```
+
+### Using Theme-Aware Colors
+
+Components automatically adapt to the current color mode:
+
+```tsx
+// Example component with theme-aware colors
+import { Box, useColorModeValue } from "@chakra-ui/react";
+
+export function ThemedCard() {
+  const bg = useColorModeValue("white", "gray.800");
+  const color = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+
+  return (
+    <Box bg={bg} color={color} borderColor={borderColor} p={4}>
+      This card adapts to the current theme
+    </Box>
+  );
+}
+```
+
+## Customization
+
+### Extending the Theme
+
+Customize colors for both light and dark modes in your theme configuration:
+
+```ts
+// src/lib/chakra-ui/theme.ts
+import { extendTheme, type ThemeConfig } from "@chakra-ui/react";
+
+const config: ThemeConfig = {
+  initialColorMode: "system",
+  useSystemColorMode: true,
+};
+
+const theme = extendTheme({
+  config,
+  colors: {
+    brand: {
+      50: "#f0f9ff",
+      100: "#e0f2fe",
+      // ... define your brand colors
+      900: "#0c4a6e",
+    },
+  },
+  styles: {
+    global: (props: { colorMode: string }) => ({
+      body: {
+        bg: props.colorMode === "dark" ? "gray.900" : "white",
+        color: props.colorMode === "dark" ? "white" : "gray.900",
+      },
+    }),
+  },
+});
+
+export { theme };
+```
+
+### Custom Color Mode Configuration
+
+Control default behavior and system preference detection:
+
+```ts
+const config: ThemeConfig = {
+  initialColorMode: "light", // or "dark" or "system"
+  useSystemColorMode: true, // Respect OS preference
+};
+```
+
+## Benefits
+
+- **Accessibility** - Caters to users with different preferences and visual needs, reducing eye strain in low-light environments
+- **Brand Consistency** - Maintain your brand's look and feel across both modes with a unified design system
+- **Modern UI** - Offers a contemporary and professional user interface that users expect from modern applications
+- **User Preference** - Respects user preferences and system settings for a personalized experience
+- **Reduced Eye Strain** - Dark mode helps reduce eye strain, especially during extended use periods
+- **Energy Efficiency** - Dark mode can reduce battery consumption on OLED displays
+
+## Best Practices
+
+- **Consistent Color Usage** - Use theme-aware colors (`useColorModeValue`) instead of hardcoded colors
+- **Test Both Modes** - Always test your UI in both light and dark modes to ensure readability and contrast
+- **Accessible Contrast** - Ensure sufficient contrast ratios in both modes for accessibility compliance
+- **Smooth Transitions** - Consider adding transitions when switching modes for a polished user experience
+- **Brand Alignment** - Customize theme colors to match your brand while maintaining readability
+
+## Next Steps
+
+- Explore [Customizable UI](/benefits/customizable-ui) to learn more about Chakra UI customization
+- Read [File Structure](/buildfast/file-structure) to understand where theme configuration lives
+- Check out other [Benefits](/benefits/overview) that BuildFast offers
+

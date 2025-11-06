@@ -1,5 +1,3 @@
-# Your first feature
-
 ## Overview
 Scaffold a new domain feature using the generator, add a route, create a page, and expose a minimal public API. This shows how the Screaming Architecture keeps features self-contained and easy to ship.
 
@@ -89,47 +87,6 @@ export const router = createBrowserRouter([
   ...profileRoutes,
 ]);
 ```
-
-## Code Examples
-
-- **Service + React Query hook**
-```ts
-// src/features/profile/services/profile.service.ts
-import { axiosClient } from "@/lib/axios";
-export type Profile = { id: string; email: string };
-export async function getProfile(): Promise<Profile> {
-  const { data } = await axiosClient.get("/api/profile");
-  return data;
-}
-```
-```ts
-// src/features/profile/hooks/useProfile.ts
-import { useQuery } from "@tanstack/react-query";
-import { getProfile } from "../services/profile.service";
-export function useProfile() {
-  return useQuery({ queryKey: ["profile"], queryFn: getProfile });
-}
-```
-```ts
-// src/features/profile/index.ts (add exports)
-export { useProfile } from "./hooks/useProfile";
-```
-
-- **Environment variables (no filtering)**
-```env
-VITE_APP_SUPABASE_URL=your_supabase_url
-VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
-VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-VITE_APP_LOCALE_CURRENCY=USD
-VITE_APP_LOCALE_DATETIME=en-US
-```
-
-## Best Practices
-- **Keep routes tiny:** Only map paths to pages; place data logic in hooks/services.
-- **Public API discipline:** Export stable hooks/paths/routes only. Keep internals private.
-- **Testing:** Unit test hooks/services with mocked HTTP and providers.
-- **Naming:** Use `kebab-case` for feature folder names and consistent `PATHS` constants.
 
 ## Next Steps
 - Explore File Structure to understand where shared libs and providers live.

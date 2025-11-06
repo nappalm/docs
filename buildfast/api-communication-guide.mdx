@@ -1,0 +1,279 @@
+---
+title: "API Communication Guide"
+description: ""
+---
+
+## Configuración Inicial
+
+### Cliente Axios
+
+Configura el cliente Axios centralizado en `src/lib/axios/index.ts`:
+
+```ts
+// src/lib/axios/index.ts
+import axios from "axios";
+
+export const axiosClient = axios.create({
+  baseURL: import.meta.env.VITE_APP_API_BASE_URL ?? "/",
+  withCredentials: true,
+});
+
+// Interceptor de peticiones
+axiosClient.interceptors.request.use((config) => {
+  // Adjuntar token de autenticación si está disponible
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Interceptor de respuestas
+axiosClient.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    // Mapear errores a una forma uniforme si es necesario
+    return Promise.reject(error);
+  }
+);
+```
+
+### Cliente React Query
+
+Configura React Query en `src/lib/react-query/query-client.tsx`:
+
+```tsx
+// src/lib/react-query/query-client.tsx
+import { QueryClient } from "@tanstack/react-query";
+
+export const queryClient = new QueryClient({
+  defaultOptions: { 
+    queries: { 
+      refetchOnWindowFocus: false 
+    } 
+  },
+});
+```
+
+## Patrones de Uso
+
+### Servicio y Hook
+
+Crea servicios en cada feature para manejar las llamadas HTTP:
+
+```ts
+// src/features/example/services/example.service.ts
+import { axiosClient } from "@/lib/axios";
+
+export type Item = { 
+  id: string; 
+  name: string 
+};
+
+export async function listItems(): Promise<Item[]> {
+  const { data } = await axiosClient.get("/api/items");
+  return data;
+}
+
+export async function getItemById(id: string): Promise<Item> {
+  const { data } = await axiosClient.get(`/api/items/${id}`);
+  return data;
+}
+```
+
+Crea hooks que usen React Query para consumir los servicios:
+
+```ts
+// src/features/example/hooks/useItems.ts
+import { useQuery } from "@tanstack/react-query";
+import { listItems, getItemById, type Item } from "../services/example.service";
+
+// Hook para listar items
+export function useItems() {
+  return useQuery<Item[]>({ 
+    queryKey: ["items"], 
+    queryFn: listItems 
+  });
+}
+
+// Hook para obtener un item por ID
+export function useItem(id: string) {
+  return useQuery<Item>({ 
+    queryKey: ["items", id], 
+    queryFn: () => getItemById(id),
+    enabled: !!id
+  });
+}
+```
+
+### Mutaciones
+
+Usa `useMutation` para crear, actualizar o eliminar datos:
+
+```ts
+// src/features/example/hooks/useCreateItem.ts
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { axiosClient } from "@/lib/axios";
+import type { Item } from "../services/example.service";
+
+export function useCreateItem() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (input: { name: string }): Promise<Item> => {
+      const { data } = await axiosClient.post("/api/items", input);
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidar la query para refrescar la lista
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+    },
+  });
+}
+
+// Hook para actualizar
+export function useUpdateItem() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; name: string }): Promise<Item> => {
+      const { data } = await axiosClient.put(`/api/items/${id}`, updates);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["items", variables.id] });
+    },
+  });
+}
+
+// Hook para eliminar
+export function useDeleteItem() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      await axiosClient.delete(`/api/items/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+    },
+  });
+}
+```
+
+### Manejo de Errores
+
+Crea un tipo y función utilitaria para manejar errores HTTP de forma consistente:
+
+```ts
+// src/shared/services/http-error.ts
+export type HttpError = { 
+  status?: number; 
+  message: string 
+};
+
+export function toHttpError(e: unknown): HttpError {
+  if (typeof e === "object" && e !== null && "response" in e) {
+    const anyErr = e as any;
+    return { 
+      status: anyErr.response?.status, 
+      message: anyErr.response?.data?.message ?? "Request failed" 
+    };
+  }
+  return { message: "Unexpected error" };
+}
+```
+
+Ejemplo de uso en un componente:
+
+```tsx
+// src/features/example/components/ItemsList.tsx
+import { useItems } from "../hooks/useItems";
+import { useDeleteItem } from "../hooks/useDeleteItem";
+import { toHttpError } from "@/shared/services/http-error";
+import { useToast } from "@chakra-ui/react";
+
+export function ItemsList() {
+  const { data: items, isLoading, error } = useItems();
+  const deleteItem = useDeleteItem();
+  const toast = useToast();
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteItem.mutateAsync(id);
+      toast({ title: "Item eliminado", status: "success" });
+    } catch (err) {
+      const httpError = toHttpError(err);
+      toast({ 
+        title: "Error", 
+        description: httpError.message, 
+        status: "error" 
+      });
+    }
+  };
+
+  if (isLoading) return <div>Cargando...</div>;
+  if (error) return <div>Error al cargar items</div>;
+
+  return (
+    <ul>
+      {items?.map((item) => (
+        <li key={item.id}>
+          {item.name}
+          <button onClick={() => handleDelete(item.id)}>Eliminar</button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Variables de Entorno
+
+Configura las siguientes variables en tu archivo `.env`:
+
+```env
+# Backend base URL (opcional; por defecto "/")
+VITE_APP_API_BASE_URL=https://api.example.com
+
+# Supabase
+VITE_APP_SUPABASE_URL=your_supabase_url
+VITE_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=your_delete_account_url
+
+# Stripe
+VITE_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+# Locale (opcional)
+VITE_APP_LOCALE_CURRENCY=USD
+VITE_APP_LOCALE_DATETIME=en-US
+```
+
+## Mejores Prácticas
+
+- **Mantén los servicios delgados:** Los servicios solo deben mapear HTTP ↔ tipos; evita lógica de UI.
+- **Keys de query estables:** Usa arrays con namespaces claros, ej: `["profile", id]`.
+- **Co-localiza tipos:** Exporta tipos desde servicios; impórtalos en hooks y componentes.
+- **Invalida con precisión:** Prefiere `invalidateQueries` con keys específicas después de mutaciones.
+- **Evita sobre-fetching:** Aprovecha `staleTime`, `select`, y queries dependientes.
+- **Nunca llames Axios directamente:** Siempre usa servicios dentro de las features.
+
+## Estructura Recomendada
+
+```
+src/features/example/
+  services/
+    example.service.ts    # Funciones HTTP + tipos
+  hooks/
+    useItems.ts          # Hooks de React Query
+    useCreateItem.ts     # Mutaciones
+  components/
+    ItemsList.tsx        # Componentes que usan los hooks
+```
+
+## Next Steps
+
+- Lee [Integrations](/buildfast/integrations) para configurar Supabase auth y Stripe payments end-to-end.
+- Revisa [Testing & QA](/buildfast/testing-and-qa) para aprender a testear hooks y servicios.
+

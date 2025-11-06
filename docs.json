@@ -20,34 +20,22 @@
               "buildfast/quickstart",
               "buildfast/your-first-feature",
               "buildfast/file-structure",
-              "buildfast/api-communication",
+              "buildfast/api-communication-guide",
               "buildfast/integrations",
               "buildfast/testing-and-qa",
               "buildfast/deployments"
             ]
           },
           {
-            "group": "Getting started",
+            "group": "Benefits",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "benefits/auth-providers",
+              "benefits/structured-features",
+              "benefits/light-dark-mode",
+              "benefits/stripe-integration",
+              "benefits/customizable-ui",
+              "benefits/cli-feature-generator",
+              "benefits/supabase-ready"
             ]
           },
           {
@@ -56,26 +44,6 @@
               "ai-tools/cursor",
               "ai-tools/claude-code",
               "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
             ]
           }
         ]

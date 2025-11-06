@@ -1,0 +1,313 @@
+---
+title: "Customizable UI"
+description: "Built with Chakra UI, our boilerplate offers a stunning and fully customizable interface, ready to be adapted to your brand"
+---
+
+## Overview
+
+BuildFast provides a stunning and fully customizable user interface, built with Chakra UI. This integration ensures that your application's look and feel can be easily adapted to match your brand's aesthetic and requirements, right out of the box. You get access to a comprehensive component library that's both beautiful and highly customizable.
+
+## Key Features
+
+### Powered by Chakra UI
+
+Chakra UI is a simple, modular, and accessible component library that gives you the building blocks you need to build your React applications. It offers a comprehensive set of UI components that are highly customizable and follow accessibility best practices.
+
+### Stunning Default Design
+
+BuildFast comes with a beautiful default theme that works great immediately. You can start building features right away while gradually customizing the UI to match your brand as needed.
+
+### Easy Theming and Styling
+
+With Chakra UI, customizing your application's theme is straightforward. You can easily modify:
+
+- **Colors** - Define your brand's color palette
+- **Typography** - Set font families, sizes, and weights
+- **Spacing** - Control margins, paddings, and component spacing
+- **Components** - Override default styles for any Chakra UI component
+- **Shadows** - Customize elevation and shadow styles
+- **Borders** - Define border radius and styles
+
+### Responsive Design
+
+Chakra UI components are designed to be responsive by default, ensuring your application looks great on all screen sizes and devices. BuildFast leverages this to provide a seamless user experience across desktops, tablets, and mobile phones.
+
+### Dark Mode Support
+
+As seen in the [Light & Dark Mode](/benefits/light-dark-mode) section, Chakra UI provides robust support for light and dark modes, which are fully integrated and customizable within BuildFast.
+
+### Accessibility Built-In
+
+All Chakra UI components follow WAI-ARIA guidelines, making your application accessible by default. This includes proper keyboard navigation, focus management, and screen reader support.
+
+## Implementation
+
+### Theme Configuration
+
+Customize the theme by extending Chakra UI's default theme:
+
+```ts
+// src/lib/chakra-ui/theme.ts
+import { extendTheme, type ThemeConfig } from "@chakra-ui/react";
+
+const config: ThemeConfig = {
+  initialColorMode: "system",
+  useSystemColorMode: true,
+};
+
+const theme = extendTheme({
+  config,
+  colors: {
+    brand: {
+      50: "#f0f9ff",
+      100: "#e0f2fe",
+      200: "#bae6fd",
+      300: "#7dd3fc",
+      400: "#38bdf8",
+      500: "#0ea5e9", // Primary brand color
+      600: "#0284c7",
+      700: "#0369a1",
+      800: "#075985",
+      900: "#0c4a6e",
+    },
+  },
+  fonts: {
+    heading: `"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`,
+    body: `"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`,
+  },
+  components: {
+    Button: {
+      defaultProps: {
+        colorScheme: "brand",
+      },
+      variants: {
+        custom: {
+          bg: "brand.500",
+          color: "white",
+          _hover: {
+            bg: "brand.600",
+          },
+        },
+      },
+    },
+    Card: {
+      baseStyle: {
+        container: {
+          boxShadow: "lg",
+          borderRadius: "xl",
+        },
+      },
+    },
+  },
+});
+
+export { theme };
+```
+
+### Using Custom Theme
+
+Apply your custom theme to the ChakraProvider:
+
+```tsx
+// src/app/providers.tsx
+import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
+import { theme } from "@/lib/chakra-ui/theme";
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <ChakraProvider theme={theme}>
+        {children}
+      </ChakraProvider>
+    </>
+  );
+}
+```
+
+### Component Customization Examples
+
+#### Custom Button Variant
+
+```tsx
+import { Button } from "@chakra-ui/react";
+
+export function CustomButton() {
+  return (
+    <Button variant="custom" size="lg">
+      Click Me
+    </Button>
+  );
+}
+```
+
+#### Theme-Aware Styling
+
+```tsx
+import { Box, useColorModeValue } from "@chakra-ui/react";
+
+export function ThemedCard() {
+  const bg = useColorModeValue("white", "gray.800");
+  const color = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+
+  return (
+    <Box
+      bg={bg}
+      color={color}
+      borderColor={borderColor}
+      borderWidth="1px"
+      borderRadius="lg"
+      p={6}
+    >
+      This card adapts to the current theme
+    </Box>
+  );
+}
+```
+
+#### Responsive Layout
+
+```tsx
+import { Container, VStack, HStack, Box } from "@chakra-ui/react";
+
+export function ResponsiveLayout() {
+  return (
+    <Container maxW="container.xl">
+      <VStack spacing={4}>
+        <Box
+          w={{ base: "100%", md: "50%", lg: "33%" }}
+          h="200px"
+          bg="brand.500"
+        />
+        <HStack
+          spacing={4}
+          direction={{ base: "column", md: "row" }}
+        >
+          <Box flex="1" bg="gray.200" p={4}>Item 1</Box>
+          <Box flex="1" bg="gray.200" p={4}>Item 2</Box>
+        </HStack>
+      </VStack>
+    </Container>
+  );
+}
+```
+
+## Customization Workflow
+
+### 1. Define Your Brand Colors
+
+Start by mapping your brand colors to Chakra's color system:
+
+```ts
+colors: {
+  brand: {
+    50: "#your-lightest-shade",
+    100: "#your-lighter-shade",
+    // ... continue through 900
+    900: "#your-darkest-shade",
+  },
+}
+```
+
+### 2. Customize Typography
+
+Set your brand fonts:
+
+```ts
+fonts: {
+  heading: `"Your Heading Font", sans-serif`,
+  body: `"Your Body Font", sans-serif`,
+  mono: `"Your Monospace Font", monospace`,
+}
+```
+
+### 3. Override Component Styles
+
+Customize individual components to match your design:
+
+```ts
+components: {
+  Button: {
+    baseStyle: {
+      fontWeight: "semibold",
+      borderRadius: "md",
+    },
+  },
+  Input: {
+    defaultProps: {
+      focusBorderColor: "brand.500",
+    },
+  },
+}
+```
+
+### 4. Create Custom Variants
+
+Define reusable component variants:
+
+```ts
+components: {
+  Button: {
+    variants: {
+      brandSolid: {
+        bg: "brand.500",
+        color: "white",
+        _hover: {
+          bg: "brand.600",
+        },
+      },
+      brandOutline: {
+        border: "2px solid",
+        borderColor: "brand.500",
+        color: "brand.500",
+        _hover: {
+          bg: "brand.50",
+        },
+      },
+    },
+  },
+}
+```
+
+## Benefits
+
+- **Brand Consistency** - Easily align the UI with your brand guidelines and visual identity
+- **Rapid Development** - Leverage pre-built, customizable components to speed up development
+- **Enhanced User Experience** - Provide a polished and modern interface that users will love
+- **Flexibility** - Adapt the UI to evolving design trends and user feedback without extensive refactoring
+- **Accessibility** - Built-in accessibility features ensure your app works for everyone
+- **Responsive by Default** - Components work seamlessly across all device sizes
+- **Developer Experience** - Intuitive API and excellent TypeScript support
+- **Comprehensive Component Library** - 50+ pre-built components ready to use
+
+## Available Components
+
+Chakra UI provides a wide range of components:
+
+- **Layout** - Box, Container, Flex, Grid, Stack
+- **Forms** - Button, Input, Select, Checkbox, Radio, Switch
+- **Data Display** - Badge, Code, Divider, List, Table, Stat
+- **Feedback** - Alert, Spinner, Progress, Skeleton, Toast
+- **Overlay** - Modal, Popover, Tooltip, Drawer
+- **Navigation** - Breadcrumb, Link, Tabs, Menu
+- **Media** - Avatar, Image, Icon
+- **Typography** - Heading, Text, Code
+
+## Best Practices
+
+- **Use Style Props** - Leverage Chakra's style props for responsive and theme-aware styling
+- **Extend, Don't Override** - Extend the theme rather than completely replacing it
+- **Consistent Spacing** - Use Chakra's spacing scale for consistent layouts
+- **Theme-Aware Colors** - Always use `useColorModeValue` for colors that change with theme
+- **Component Variants** - Create reusable variants instead of duplicating styles
+- **Accessibility First** - Use semantic HTML and ARIA attributes provided by Chakra
+- **Mobile First** - Design for mobile first, then enhance for larger screens
+
+## Next Steps
+
+- Explore [Light & Dark Mode](/benefits/light-dark-mode) to learn about theme switching
+- Read [File Structure](/buildfast/file-structure) to understand where theme config lives
+- Check out [Chakra UI Documentation](https://chakra-ui.com) for component reference
+- Review other [Benefits](/benefits/overview) that BuildFast offers
+

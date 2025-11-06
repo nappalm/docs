@@ -1,0 +1,153 @@
+---
+title: "Structured Features"
+description: "Opinionated architecture with domain-driven modules, routing separation, and scalable feature isolation out of the box"
+---
+
+## Overview
+
+BuildFast follows an opinionated architecture with domain-driven modules, routing separation, and scalable feature isolation out of the box. The "Screaming Architecture" approach ensures that features (not files) are the first thing you see, providing clear boundaries and a scalable structure from day one.
+
+## Key Concepts
+
+### Feature-First Architecture
+
+Organize by domain features, each as a vertical slice with components, pages, hooks, services, utils, and router. This approach makes it immediately clear what your application does by looking at the folder structure.
+
+### Domain-Driven Modules
+
+Each feature is a self-contained domain module that encapsulates:
+- **Components** - UI components specific to the feature
+- **Pages** - Route-level page components
+- **Hooks** - Custom React hooks for data fetching and state management
+- **Services** - API communication and business logic
+- **Utils** - Feature-specific utility functions
+- **Router** - Feature routing configuration
+
+### Routing Separation
+
+Features manage their own routing, keeping concerns separated and making it easy to understand the navigation structure of each domain.
+
+### Scalable Feature Isolation
+
+Each feature is isolated with a minimal public API exposed through `index.ts`, preventing tight coupling between features and enabling independent development and testing.
+
+## Architecture Structure
+
+```
+src/
+  app/
+    main.tsx              # Entry point
+    providers.tsx         # Chakra -> React Query -> Auth -> Router
+    router.tsx            # Compose routes from features
+  features/
+    auth/
+      components/
+      hooks/
+      pages/
+      router/
+        paths.ts
+        router.tsx
+      services/
+      utils/
+      index.ts            # Public API
+    home/
+    settings/
+    ...
+  lib/
+    axios/
+    chakra-ui/
+    react-query/
+    stripe/
+    supabase/
+  shared/
+    components/           # BaseLayout, SettingsLayout, etc.
+    hooks/
+    services/
+    utils/
+```
+
+## Code Examples
+
+### Feature Public API
+
+Each feature exposes only what other features should consume:
+
+```ts
+// src/features/example/index.ts
+export { exampleRoutes } from "./router/router";
+export { EXAMPLE_PATHS } from "./router/paths";
+export { useExample } from "./hooks/useExample";
+```
+
+### App Router Composition
+
+Routes are composed from individual features:
+
+```tsx
+// src/app/router.tsx
+import { createBrowserRouter } from "react-router-dom";
+import { authRoutes } from "@/features/auth";
+import { homeRoutes } from "@/features/home";
+import { settingsRoutes } from "@/features/settings";
+
+export const router = createBrowserRouter([
+  ...authRoutes,
+  ...homeRoutes,
+  ...settingsRoutes,
+]);
+```
+
+### Path Alias Usage
+
+Import with `@/*` pointing to `./src/*`:
+
+```ts
+// tsconfig/vite configured with @/*
+import { supabaseClient } from "@/lib/supabase";
+import { BaseLayout } from "@/shared/components/BaseLayout";
+```
+
+## Benefits
+
+- **Clear Organization** - Immediately understand what your app does by looking at the folder structure
+- **Independent Development** - Features can be developed and tested in isolation
+- **Scalability** - Easy to add new features without affecting existing ones
+- **Maintainability** - Clear boundaries make it easier to locate and modify code
+- **Team Collaboration** - Multiple developers can work on different features simultaneously
+- **Reusability** - Shared components and utilities are clearly separated from feature-specific code
+
+## Best Practices
+
+- **Keep internals private** - Only export stable APIs from each feature's `index.ts`
+- **Thin router files** - Keep data logic in hooks/services, not in route objects
+- **Shared is generic** - Place only reusable, feature-agnostic code in `src/shared`
+- **Centralize configs** - HTTP, theming, query client, and SDK clients live in `src/lib`
+- **Public API per feature** - Only expose what other features should consume
+- **Use shared wisely** - Pull from `@/shared` for cross-cutting UI/utilities; never import feature internals into shared
+
+## Layers Explained
+
+### App Shell (`src/app`)
+Global providers and the root router. This is where you compose your application-level concerns like theming, data fetching, authentication, and routing.
+
+### Features (`src/features/*`)
+Self-contained domains with a minimal public API. Each feature is a vertical slice containing everything it needs to function independently.
+
+### Shared Layer (`src/shared`)
+Cross-cutting UI and utilities that are used across multiple features. Examples include base layouts, common hooks, and shared services.
+
+### Lib Configs (`src/lib`)
+Centralized third-party setup for:
+- Axios (HTTP client)
+- Chakra UI (component library)
+- React Query (server state management)
+- Stripe (payments)
+- Supabase (auth and database)
+
+## Next Steps
+
+- Read [File Structure](/buildfast/file-structure) for a detailed overview of the architecture
+- Learn how to create [Your First Feature](/buildfast/your-first-feature)
+- Explore [API Communication Guide](/buildfast/api-communication-guide) to see how features communicate
+- Check out other [Benefits](/benefits/overview) that BuildFast offers
+

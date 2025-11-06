@@ -1,0 +1,223 @@
+---
+title: "CLI Feature Generator"
+description: "Speed up development with the `npm run plop` command — instantly scaffold modular, production-ready features with naming conventions and file structure enforced"
+---
+
+## Overview
+
+BuildFast includes a powerful Command Line Interface (CLI) feature generator powered by Plop.js that significantly speeds up your development workflow. With a single interactive command, you can instantly scaffold new, modular, and production-ready features, ensuring consistency and adherence to best practices from the start.
+
+This generator automates the creation of the necessary file structure and applies predefined naming conventions, allowing you to focus on the business logic rather than repetitive setup tasks.
+
+## Key Features
+
+### Instant Scaffolding
+
+Quickly generate new features with all the essential files and folders in place. This eliminates manual setup and reduces the chances of errors. The generator creates a complete feature skeleton following BuildFast's Screaming Architecture pattern.
+
+### Modular Architecture
+
+Features are generated following BuildFast's opinionated modular architecture, promoting clear separation of concerns and maintainability. Each feature is a self-contained vertical slice, making it easier to develop, test, and deploy.
+
+### Production-Ready Structure
+
+The generated features are designed to be production-ready, incorporating best practices for:
+- **Scalability** - Organized structure that grows with your application
+- **Type Safety** - TypeScript-ready templates
+- **Consistency** - Standardized patterns across all features
+- **Maintainability** - Clear organization and boundaries
+
+### Enforced Naming Conventions
+
+The CLI enforces consistent naming conventions across your project, improving readability and making it easier for teams to collaborate. All generated files follow PascalCase for components and camelCase for utilities.
+
+### Standardized File Structure
+
+Automatically creates a standardized file structure for each new feature, ensuring uniformity and simplifying navigation within your codebase. Every feature includes:
+
+- `components/` - Feature-specific UI components
+- `hooks/` - Custom React hooks for data and state management
+- `pages/` - Route-level page components
+- `router/` - Feature routing configuration (`paths.ts` and `router.tsx`)
+- `services/` - API communication and business logic
+- `utils/` - Feature-specific utility functions
+- `index.ts` - Public API exports
+
+## How to Use
+
+### Basic Usage
+
+To generate a new feature, run the following command in your terminal:
+
+```bash
+npm run plop
+```
+
+This will launch an interactive prompt asking for the feature name.
+
+### Example Workflow
+
+1. **Run the generator:**
+```bash
+npm run plop
+```
+
+2. **Answer the prompt:**
+When prompted, enter your feature name (e.g., `profile`, `dashboard`, `products`).
+
+3. **Review generated structure:**
+The generator creates a complete feature structure:
+```
+src/features/profile/
+  components/
+  hooks/
+  pages/
+  router/
+    paths.ts
+    router.tsx
+  services/
+  utils/
+  index.ts  # public API
+```
+
+## Generated File Structure
+
+Each generated feature follows this structure:
+
+```
+src/features/<feature-name>/
+├── components/          # UI components specific to this feature
+├── hooks/               # Custom React hooks
+├── pages/               # Page components for routes
+├── router/
+│   ├── paths.ts         # Route path constants
+│   └── router.tsx       # Route definitions
+├── services/            # API calls and business logic
+├── utils/               # Feature-specific utilities
+└── index.ts             # Public API exports
+```
+
+## Example: Creating a Profile Feature
+
+### Step 1: Generate the Feature
+
+```bash
+npm run plop
+# Enter feature name: profile
+```
+
+### Step 2: Generated Files
+
+The generator creates:
+
+**`src/features/profile/router/paths.ts`**
+```ts
+export const PROFILE_PATHS = {
+  root: "/profile",
+};
+```
+
+**`src/features/profile/router/router.tsx`**
+```tsx
+import { RouteObject } from "react-router-dom";
+import ProfilePage from "../pages/ProfilePage";
+import { PROFILE_PATHS } from "./paths";
+
+export const profileRoutes: RouteObject[] = [
+  { path: PROFILE_PATHS.root, element: <ProfilePage /> },
+];
+```
+
+**`src/features/profile/index.ts`**
+```ts
+export { PROFILE_PATHS } from "./router/paths";
+export { profileRoutes } from "./router/router";
+```
+
+### Step 3: Customize Your Feature
+
+After generation, you can immediately start building:
+
+- Add components in `components/`
+- Create hooks in `hooks/`
+- Define pages in `pages/`
+- Set up API calls in `services/`
+- Add utilities in `utils/`
+
+### Step 4: Integrate into App Router
+
+```tsx
+// src/app/router.tsx
+import { createBrowserRouter } from "react-router-dom";
+import { profileRoutes } from "@/features/profile";
+
+export const router = createBrowserRouter([
+  // ... other routes
+  ...profileRoutes,
+]);
+```
+
+## Benefits
+
+- **Accelerated Development** - Drastically reduce the time spent on boilerplate code and setup. Generate a complete feature structure in seconds instead of minutes.
+
+- **Consistency** - Ensure all new features follow the same architectural patterns and naming conventions. No more wondering where to put a component or service.
+
+- **Reduced Errors** - Minimize human error by automating repetitive tasks. No more forgetting to create a router file or export from `index.ts`.
+
+- **Improved Maintainability** - A consistent and modular structure makes the codebase easier to understand and maintain, especially as your team grows.
+
+- **Scalability** - Features are designed to be scalable, supporting your application's growth without architectural debt.
+
+- **Onboarding** - New team members can immediately understand the structure, reducing onboarding time.
+
+- **Best Practices** - The generator enforces best practices automatically, ensuring code quality from the start.
+
+## Customization
+
+### Customizing Templates
+
+You can customize the Plop templates to match your specific needs:
+
+1. Locate the Plop configuration file (usually `plopfile.js` or `plopfile.ts`)
+2. Modify templates to include custom boilerplate code
+3. Add additional prompts for feature-specific configuration
+4. Extend the file structure to match your requirements
+
+### Advanced Usage
+
+For teams with specific needs, you can:
+
+- Add pre-filled template code
+- Include example implementations
+- Add test file templates
+- Configure TypeScript types generation
+- Include Storybook setup for components
+
+## Best Practices
+
+- **Use Descriptive Names** - Choose feature names that clearly describe the domain (e.g., `user-profile`, `order-management`)
+
+- **Keep Features Focused** - Each feature should represent a single domain concern
+
+- **Export Only Public API** - Only export what other features need from `index.ts`
+
+- **Follow the Structure** - Respect the generated structure unless you have a compelling reason to deviate
+
+- **Consistent Patterns** - Use the same patterns across all generated features
+
+## Related Features
+
+The CLI generator works seamlessly with other BuildFast features:
+
+- **[Structured Features](/benefits/structured-features)** - Understand the architecture that the generator follows
+- **[File Structure](/buildfast/file-structure)** - Learn about the overall project organization
+- **[Your First Feature](/buildfast/your-first-feature)** - Step-by-step guide to building with generated features
+
+## Next Steps
+
+- Read [Your First Feature](/buildfast/your-first-feature) for a complete walkthrough
+- Explore [File Structure](/buildfast/file-structure) to understand the architecture
+- Check out [Structured Features](/benefits/structured-features) to learn about the benefits
+- Review other [Benefits](/benefits/overview) that BuildFast offers
+

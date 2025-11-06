@@ -1,0 +1,267 @@
+---
+title: "Supabase-Ready"
+description: "Buildfast works seamlessly with Supabase, giving you instant access to authentication, real-time data, and edge functions. Launch full-featured products faster with a backend that's fully integrated and production-ready out of the box"
+---
+
+## Overview
+
+BuildFast is designed to work seamlessly with Supabase, providing you with a powerful, open-source backend that offers instant access to essential features for modern web applications. This integration allows you to launch full-featured products faster with a backend that's fully integrated and production-ready out of the box.
+
+Supabase combines the power of PostgreSQL with a comprehensive suite of backend services, all accessible through simple, well-designed APIs. BuildFast leverages this infrastructure to eliminate the complexity of backend setup, letting you focus on building amazing user experiences.
+
+## Key Features
+
+### Authentication
+
+Supabase Auth is fully integrated into BuildFast, providing secure user management with support for:
+
+- **Email/Password** - Traditional email-based authentication
+- **OAuth Providers** - Google, GitHub, Discord, and more (see [Auth Providers](/benefits/auth-providers))
+- **Magic Links** - Passwordless authentication via email
+- **Phone Authentication** - SMS-based login
+- **Social Logins** - One-click authentication with popular platforms
+
+### Real-Time Data
+
+Listen to database changes in real-time, enabling dynamic and interactive user experiences. BuildFast's integration allows you to:
+
+- Subscribe to changes in specific tables or rows
+- Build collaborative features easily
+- Create live dashboards and notifications
+- Implement real-time chat and presence features
+
+### Edge Functions
+
+Run server-side logic closer to your users for lower latency and improved performance. Edge Functions enable you to:
+
+- Process webhooks securely
+- Handle background jobs
+- Implement server-side API endpoints
+- Integrate with third-party services
+
+### PostgreSQL Database
+
+A robust and scalable relational database at its core, providing:
+
+- Full SQL capabilities with PostgreSQL
+- Row-level security for fine-grained access control
+- Database migrations and schema management
+- Built-in connection pooling
+
+### Storage
+
+Store and serve large files with ease:
+
+- Upload files directly from the client
+- Generate secure, signed URLs
+- Organize files with folders and metadata
+- Set up public or private buckets
+
+## Implementation
+
+### Supabase Client Setup
+
+BuildFast pre-configures the Supabase client for immediate use:
+
+```ts
+// src/lib/supabase/supabase-client.ts
+import { createClient } from "@supabase/supabase-js";
+
+export const supabaseClient = createClient(
+  import.meta.env.VITE_APP_SUPABASE_URL!,
+  import.meta.env.VITE_APP_SUPABASE_ANON_KEY!
+);
+```
+
+### Authentication Example
+
+```tsx
+// Using Supabase Auth in a component
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export function LoginForm() {
+  const handleLogin = async (email: string, password: string) => {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Login error:", error.message);
+    } else {
+      console.log("User logged in:", data.user);
+    }
+  };
+
+  // ... form implementation
+}
+```
+
+### Real-Time Subscription Example
+
+```tsx
+import { useEffect, useState } from "react";
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export function useRealtimeMessages(roomId: string) {
+  const [messages, setMessages] = useState<any[]>([]);
+
+  useEffect(() => {
+    const channel = supabaseClient
+      .channel(`room:${roomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseClient.removeChannel(channel);
+    };
+  }, [roomId]);
+
+  return messages;
+}
+```
+
+### Database Query Example
+
+```tsx
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export async function fetchUserProfile(userId: string) {
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+```
+
+### Storage Upload Example
+
+```tsx
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export async function uploadFile(file: File, path: string) {
+  const { data, error } = await supabaseClient.storage
+    .from("avatars")
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Add your Supabase credentials to your `.env` file:
+
+```env
+# Supabase
+VITE_APP_SUPABASE_URL=https://your-project.supabase.co
+VITE_APP_SUPABASE_ANON_KEY=your-anon-key
+VITE_APP_SUPABASE_DELETE_ACCOUNT_URL=https://your-project.supabase.co/auth/v1/admin/users
+```
+
+### Getting Your Supabase Credentials
+
+1. Go to [supabase.com](https://supabase.com) and sign up/login
+2. Create a new project or select an existing one
+3. Navigate to **Settings** > **API**
+4. Copy your **Project URL** and **anon/public key**
+5. Add them to your `.env` file
+
+## Benefits
+
+- **Instant Backend Access** - No need to set up servers, databases, or authentication systems
+- **Scalability** - Supabase scales automatically with your application's growth
+- **Security** - Built-in security features including Row Level Security (RLS) and authentication
+- **Developer Experience** - Excellent tooling, documentation, and developer experience
+- **Open Source** - Self-hostable and built on open-source technologies
+- **Production Ready** - Used by thousands of companies in production
+- **Real-Time Capabilities** - Built-in support for real-time subscriptions
+- **Type Safety** - Generate TypeScript types from your database schema
+
+## Use Cases
+
+BuildFast with Supabase is perfect for:
+
+- **SaaS Applications** - Multi-tenant applications with user management
+- **Social Platforms** - Real-time feeds, comments, and interactions
+- **E-Commerce** - Product catalogs, orders, and inventory management
+- **Collaboration Tools** - Real-time document editing and team collaboration
+- **Marketplaces** - User listings, messaging, and transactions
+- **Dashboard Applications** - Real-time data visualization and analytics
+
+## Integration with React Query
+
+BuildFast combines Supabase with React Query for optimal data fetching:
+
+```tsx
+// src/features/profiles/hooks/useProfile.ts
+import { useQuery } from "@tanstack/react-query";
+import { supabaseClient } from "@/lib/supabase/supabase-client";
+
+export function useProfile(userId: string) {
+  return useQuery({
+    queryKey: ["profile", userId],
+    queryFn: async () => {
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+```
+
+## Best Practices
+
+- **Use Row Level Security (RLS)** - Implement database-level security policies
+- **Generate TypeScript Types** - Use Supabase CLI to generate types from your schema
+- **Handle Errors Gracefully** - Always check for errors in Supabase responses
+- **Use React Query** - Combine Supabase with React Query for caching and state management
+- **Secure Your Keys** - Never expose your service role key in client-side code
+- **Optimize Queries** - Use `.select()` to fetch only needed columns
+- **Enable RLS** - Always enable Row Level Security for authenticated tables
+
+## Related Documentation
+
+- **[Integrations](/buildfast/integrations)** - Detailed setup guide for Supabase
+- **[Auth Providers](/benefits/auth-providers)** - Learn about authentication providers
+- **[API Communication Guide](/buildfast/api-communication-guide)** - Patterns for API integration
+
+## Next Steps
+
+- Set up your Supabase project and configure environment variables
+- Read [Integrations](/buildfast/integrations) for detailed setup instructions
+- Explore [Supabase Documentation](https://supabase.com/docs) for advanced features
+- Check out other [Benefits](/benefits/overview) that BuildFast offers
+

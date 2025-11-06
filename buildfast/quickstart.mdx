@@ -1,22 +1,20 @@
-# QuickStart
-
 ## Overview
-Get BuildFast running locally in minutes. You’ll install dependencies, set environment variables, start the dev server, and explore the default feature modules. No filtering of env values — all variables are listed explicitly here.
-
-## Key Concepts
-- **Single command dev:** Vite-powered dev server with hot reload.
-- **Typed integrations:** Supabase and Stripe configured via env vars.
-- **Feature-first routing:** Routes composed from each feature’s public API.
-- **Path aliases:** Import via `@/*` for clean module paths.
+Get BuildFast running locally in minutes. You'll initialize your project with the BuildFast wizard, install dependencies, set environment variables, start the dev server, and explore the default feature modules. No filtering of env values — all variables are listed explicitly here.
 
 ## Steps
 
-- **1) Install dependencies**
+- **1) Initialize the project**
+Run the BuildFast wizard to create your project. It will ask for your project name.
+```bash
+npx buildfast
+```
+
+- **2) Install dependencies**
 ```bash
 npm install
 ```
 
-- **2) Configure environment variables**
+- **3) Configure environment variables**
 Create a `.env` at the project root. These are required for auth, data, and payments.
 ```env
 # Supabase
@@ -32,50 +30,11 @@ VITE_APP_LOCALE_CURRENCY=USD
 VITE_APP_LOCALE_DATETIME=en-US
 ```
 
-- **3) Start the dev server**
+- **4) Start the dev server**
 ```bash
 npm run dev
 # App runs at http://localhost:5173
 ```
-
-- **4) Verify providers and routes**
-```tsx
-// src/app/providers.tsx
-// ChakraProvider -> React Query -> AuthProvider -> RouterProvider
-```
-```tsx
-// src/app/router.tsx
-// Compose routes from feature public APIs
-authRoutes; homeRoutes; settingsRoutes;
-```
-
-- **5) Generate your first feature (optional)**
-```bash
-npm run plop
-# Creates: src/features/<your-feature>/{components,hooks,pages,router,services,utils,index.ts}
-```
-
-## Code Examples
-
-- **Path aliases**
-```ts
-// tsconfig.json / vite.config.ts configured for @/* alias
-import { supabaseClient } from "@/lib/supabase";
-```
-
-- **React Query config (focus refetch disabled)**
-```tsx
-// src/lib/react-query/query-client.tsx
-export const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false } },
-});
-```
-
-## Best Practices
-- **Keep secrets safe:** Use `.env` and never commit it.
-- **Public API only:** Export stable hooks/components/paths from each feature’s `index.ts`.
-- **Shared imports:** Only import from `@/shared` in features; don’t import feature internals into shared.
-- **Type everything:** Keep Supabase types and API responses strictly typed.
 
 ## Next Steps
 - Build “Your first feature” to add a new route, a page, and a data hook.
